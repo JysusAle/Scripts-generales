@@ -1,0 +1,84 @@
+description : Autor Jesus Tenorio
+description : Fecha 10/10/2025
+description : Configuracion basica de un router cisco
+description : Reemplazar x por el puerto necesario
+
+enable
+configure terminal
+hostname Rx
+
+description : Editar nombre del router
+username Rx password cisco
+enable password cisco
+
+description : Configurar direccion ip en interfaces
+description : Repetir segun necesidad
+interface gigabitEthernet 0/x/y
+ip address <IP_ADDRESS> <SUBNET_MASK>
+no shutdown
+exit
+
+description : Activar lineas virtuales con telnet
+line console 0
+login local
+line vty 0 15
+login local
+transport input telnet
+exit
+
+description : Activar lineas virtuales con SSH
+ip domain-name cisco
+crypto key generate rsa
+aaa new-model
+ip ssh authentication-retries 3
+ip ssh time-out 120
+line vty 0 15
+transport input ssh
+exit
+
+description : Enrutar
+description : Repetir segun necesidad
+router rip
+version 2
+network <NETWORK_ADDRESS> 
+network <NETWORK_VLAN> description : si hay vlans
+exit
+
+description : Configurar DHCP
+ip dhcp pool <POOL_NAME>
+network <NETWORK_ADDRESS> <SUBNET_MASK>
+default-router <DEFAULT_GATEWAY>
+dns-server <DNS_SERVER> description : si hay servidor dns
+exit
+do sh ip dhcp binding
+description : Excluir direcciones ip del dhcp
+description : Repetir segun necesidad
+ip dhcp excluded-address <START_IP> <END_IP>
+
+description : Aplicar direccionamiento IPv6
+ipv6 unicast-routing
+interface gigabitEthernet 0/x/y
+ipv6 address <IPV6_ADDRESS>/<PREFIX_LENGTH>
+no shutdown
+exit
+
+description : EUI 64
+ipv6 unicast-routing
+interface gigabitEthernet 0/x/y
+ipv6 address <IPV6_ADDRESS>/<PREFIX_LENGTH> eui-64
+no shutdown
+exit
+
+description : Enrutamiento entre VLANs
+description : Repetir segun necesidad, por cada interfaz y subinterfaz
+interface gigabitEthernet 0/x/y.z
+encapsulation dot1Q <VLAN_ID>
+ip address <IP_ADDRESS> <SUBNET_MASK>
+
+interface gigabitEthernet 0/x/y.w
+encapsulation dot1Q <VLAN_ID>
+ip address <IP_ADDRESS> <SUBNET_MASK>
+
+interface gigabitEthernet 0/x/y
+no shutdown
+exit

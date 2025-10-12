@@ -1,0 +1,118 @@
+description : Autor Jesus Tenorio
+description : Fecha 10/10/2025
+description : Configuracion basica de switch cisco
+description : Reemplazar x por el puerto necesario
+
+enable
+configure terminal
+hostname Sx
+
+description : Editar o ignorar esta parte si no es necesario
+interface vlan 1
+ip address <IP_ADDRESS> <SUBNET_MASK>
+no shutdown
+exit
+
+description : Editar nombre del switch
+username Sx password cisco
+enable password cisco
+
+description : Activar lineas virtuales con telnet
+line vty 0 15
+login local
+transport input telnet
+exit
+
+description : Configurar direccion gateway
+ip default-gateway <GATEWAY_IP>
+exit
+
+description : Ver tabla Mac y limpiar tabla mac
+show mac address-table
+clear mac address-table dynamic
+
+description : Hacer SSH en el switch
+ip domain-name cisco
+crypto key generate rsa
+aaa new-model
+ip ssh authentication-retries 3
+ip ssh time-out 120
+line vty 0 15
+transport input ssh
+login local
+
+description : Creacion de vlans en el switch
+
+description : Ver vlan creadas
+do show vlan brief
+vlan <VLAN_ID_1>
+vlan <VLAN_ID_2> description : Repetir segun necesidad
+
+name <VLAN_NAME> description : opcional
+exit
+
+description : Asignar puertos a las vlans y configurar en mode access
+description : Repetir segun necesidad
+interface fastEthernet 0/x
+switchport mode access
+switchport access vlan <VLAN_ID>
+exit
+
+description : Configurar varios puertos a la vlan
+description : Repetir segun necesidad
+description : Reemplazar x - y por el rango de puertos
+interface range fastEthernet 0/x - y
+switchport mode access
+switchport access vlan <VLAN_ID>
+exit
+
+description : Configurar en mode trunk
+description : usar interface range fastEthernet 0/x - y si es necesario
+interface fastEthernet 0/x 
+switchport mode trunk
+switchport trunk allowed vlan <VLAN_IDs> description : Reemplazar por las vlans necesarias
+exit
+
+description : Configurar seguridad basica en los puertos
+do sh port-security
+interface fastEthernet 0/x
+shutdown
+switchport mode access
+switchport port-security
+switchport port-security maximum 3
+switchport port-security mac-address sticky
+switchport port-security violation <protect | restrict | shutdown>
+no shutdown
+exit
+
+description : Configurar STP, hacer un switch principal
+do sh spanning-tree
+spanning-tree vlan <VLAN_ID> root primary
+do sh spanning-tree vlan <VLAN_ID>
+end
+description : O bien...
+spanning-tree vlan <VLAN_ID> root secondary
+description : O bien...
+spanning-tree vlan <VLAN_ID> priority <PRIORITY_VALUE>
+
+description : Configurar portfast en los puertos de usuario
+interface fastEthernet 0/x
+spanning-tree portfast
+spanning-tree bpduguard enable
+exit
+
+description : LACP y PAgP
+interface range fastEthernet 0/x - y
+channel-group <GROUP_NUMBER> mode <active | passive | desirable | auto>
+interface port-channel <GROUP_NUMBER>
+switchport mode trunk
+
+description : Verificar configuracion del switch
+do sh ip interface brief
+do sh interface port-channel <GROUP_NUMBER>
+do sh running-config
+do sh etherchannel summary
+do sh spanning-tree
+do sh vlan brief
+do sh mac address-table
+do sh port-security
