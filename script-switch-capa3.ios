@@ -1,24 +1,24 @@
-description : Autor Jesus Tenorio
-description : Fecha 10/10/2025
-description : Configuracion basica de switch cisco de capa 3
-description : Reemplazar x por el puerto necesario
+! Autor Jesus Tenorio
+! Fecha 10/10/2025
+! Configuracion basica de switch cisco de capa 3
+! Reemplazar x por el puerto necesario
 
 enable
 configure terminal
 
-description : Editar nombre del switch
+! Editar nombre del switch
 username Sx password cisco
 enable password cisco
 
-description : Configurar direccion ip en interfaces
-description : Repetir segun necesidad
+! Configurar direccion ip en interfaces
+! Repetir segun necesidad
 interface fastEthernet 0/x/y
 no switchport
 ip address <IP_ADDRESS> <SUBNET_MASK>
 no shutdown
 exit
 
-description : Activar lineas virtuales con telnet
+! Activar lineas virtuales con telnet
 line console 0
 login local
 line vty 0 15
@@ -26,7 +26,7 @@ login local
 transport input telnet
 exit
 
-description : Activar lineas virtuales con SSH
+! Activar lineas virtuales con SSH
 ip domain-name cisco
 crypto key generate rsa
 aaa new-model
@@ -36,38 +36,43 @@ line vty 0 15
 transport input ssh
 exit
 
-description : Enrutamiento entre vlans
+! Enrutamiento entre vlans
 vlan <VLAN_ID_1>
-vlan <VLAN_ID_2> description : Repetir segun necesidad
-name <VLAN_NAME> description : opcional
+vlan <VLAN_ID_2>
+! Repetir segun necesidad
+
+name <VLAN_NAME>
+! opcional
 exit
 interface fastEthernet 0/x
 switchport trunk encapsulation dot1q
 switchport mode trunk
 exit
-description : Por cada vlan crear una interface vlan y asignar direccion ip
+! Por cada vlan crear una interface vlan y asignar direccion ip
 ip routing
 interface vlan <VLAN_ID>
 ip address <IP_ADDRESS> <SUBNET_MASK>
 no shutdown
 exit
 
-description : Enrutar
-description : Repetir segun necesidad
+! Enrutar
+! Repetir segun necesidad
 router rip
 version 2
 network <NETWORK_ADDRESS> 
-network <NETWORK_VLAN> description : si hay vlans
+network <NETWORK_VLAN>
+! si hay vlans
 exit
 
-description : Configurar DHCP
+! Configurar DHCP
 ip dhcp pool <POOL_NAME>
 network <NETWORK_ADDRESS> <SUBNET_MASK>
 default-router <DEFAULT_GATEWAY>
-dns-server <DNS_SERVER> description : si hay servidor dns
+dns-server <DNS_SERVER>
+! si hay servidor dns
 exit
 do sh ip dhcp binding
-description : Excluir direcciones ip del dhcp
-description : Repetir segun necesidad
+! Excluir direcciones ip del dhcp
+! Repetir segun necesidad
 ip dhcp excluded-address <START_IP> <END_IP>
 

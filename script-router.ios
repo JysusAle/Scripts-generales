@@ -1,24 +1,24 @@
-description : Autor Jesus Tenorio
-description : Fecha 10/10/2025
-description : Configuracion basica de un router cisco
-description : Reemplazar x por el puerto necesario
+! Autor Jesus Tenorio
+! Fecha 10/10/2025
+! Configuracion basica de un router cisco
+! Reemplazar x por el puerto necesario
 
 enable
 configure terminal
 hostname Rx
 
-description : Editar nombre del router
+! Editar nombre del router
 username Rx password cisco
 enable password cisco
 
-description : Configurar direccion ip en interfaces
-description : Repetir segun necesidad
+! Configurar direccion ip en interfaces
+! Repetir segun necesidad
 interface gigabitEthernet 0/x/y
 ip address <IP_ADDRESS> <SUBNET_MASK>
 no shutdown
 exit
 
-description : Activar lineas virtuales con telnet
+! Activar lineas virtuales con telnet
 line console 0
 login local
 line vty 0 15
@@ -26,7 +26,7 @@ login local
 transport input telnet
 exit
 
-description : Activar lineas virtuales con SSH
+! Activar lineas virtuales con SSH
 ip domain-name cisco
 crypto key generate rsa
 aaa new-model
@@ -36,41 +36,57 @@ line vty 0 15
 transport input ssh
 exit
 
-description : Enrutar
-description : Repetir segun necesidad
+! Enrutar
+! Repetir segun necesidad
+
+! Enrutamiento con RIPV2
 router rip
 version 2
 network <NETWORK_ADDRESS> 
-network <NETWORK_VLAN> description : si hay vlans
+network <NETWORK_VLAN> 
+! si hay vlans
+
 exit
 
-description : Configurar DHCP
+!Enrutamiento estatico
+
+!Primera opcion: metrica = 0 
+ip route <DESTINATION_NETWORK> <SUBNET_MASK> <NEXT_HOP_IP>
+
+!Segunda opcion: tiene que estar un router conectado directamente
+ip route <DESTINATION_NETWORK> <SUBNET_MASK> <LOCAL_INTERFACE>
+
+!Ruta Estatica flotante
+ip route <DESTINATION_NETWORK> <SUBNET_MASK> <NEXT_HOP_IP> <METRIC>
+
+! Configurar DHCP
 ip dhcp pool <POOL_NAME>
 network <NETWORK_ADDRESS> <SUBNET_MASK>
 default-router <DEFAULT_GATEWAY>
-dns-server <DNS_SERVER> description : si hay servidor dns
+dns-server <DNS_SERVER> 
+!si hay servidor dns
 exit
 do sh ip dhcp binding
-description : Excluir direcciones ip del dhcp
-description : Repetir segun necesidad
+! Excluir direcciones ip del dhcp
+! Repetir segun necesidad
 ip dhcp excluded-address <START_IP> <END_IP>
 
-description : Aplicar direccionamiento IPv6
+! Aplicar direccionamiento IPv6
 ipv6 unicast-routing
 interface gigabitEthernet 0/x/y
 ipv6 address <IPV6_ADDRESS>/<PREFIX_LENGTH>
 no shutdown
 exit
 
-description : EUI 64
+! EUI 64
 ipv6 unicast-routing
 interface gigabitEthernet 0/x/y
 ipv6 address <IPV6_ADDRESS>/<PREFIX_LENGTH> eui-64
 no shutdown
 exit
 
-description : Enrutamiento entre VLANs
-description : Repetir segun necesidad, por cada interfaz y subinterfaz
+! Enrutamiento entre VLANs
+! Repetir segun necesidad, por cada interfaz y subinterfaz
 interface gigabitEthernet 0/x/y.z
 encapsulation dot1Q <VLAN_ID>
 ip address <IP_ADDRESS> <SUBNET_MASK>
