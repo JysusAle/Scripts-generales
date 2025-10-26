@@ -57,12 +57,27 @@ exit
 
 ! Enrutar
 ! Repetir segun necesidad
+ip routing
 router rip
 version 2
 network <NETWORK_ADDRESS> 
 network <NETWORK_VLAN>
 ! si hay vlans
 exit
+
+!Enrutamiento estatico
+
+!Primera opcion: metrica = 0 
+ip route <DESTINATION_NETWORK> <SUBNET_MASK> <NEXT_HOP_IP>
+
+!Segunda opcion: tiene que estar un router conectado directamente
+ip route <DESTINATION_NETWORK> <SUBNET_MASK> <LOCAL_INTERFACE>
+
+ip route <DESTINATION_NETWORK> <SUBNET_MASK> <NEXT_HOP_IP | LOCAL_INTERFACE> <METRIC>
+
+!Ruta estatica flotante
+!incluir todas la redes del router que sale a internet
+ip route 0.0.0.0 0.0.0.0 <NEXT_HOP_IP | LOCAL_INTERFACE>
 
 ! Configurar DHCP
 ip dhcp pool <POOL_NAME>
@@ -76,3 +91,53 @@ do sh ip dhcp binding
 ! Repetir segun necesidad
 ip dhcp excluded-address <START_IP> <END_IP>
 
+! LACP y PAgP
+interface range fastEthernet 0/x - y
+channel-group <GROUP_NUMBER> mode <active | passive | desirable | auto>
+interface port-channel <GROUP_NUMBER>
+switchport mode trunk
+
+! Enrutamiento entre VLANs
+! Repetir segun necesidad, por cada interfaz y subinterfaz
+interface gigabitEthernet 0/x/y.z
+encapsulation dot1Q <VLAN_ID>
+ip address <IP_ADDRESS> <SUBNET_MASK>
+
+interface gigabitEthernet 0/x/y.w
+encapsulation dot1Q <VLAN_ID>
+ip address <IP_ADDRESS> <SUBNET_MASK>
+
+interface gigabitEthernet 0/x/y
+no shutdown
+exit
+
+! Configurar portfast en los puertos de usuario
+interface fastEthernet 0/x
+spanning-tree portfast
+spanning-tree bpduguard enable
+
+!HSRP
+!Entrar a la interfaz de la misma red
+!Recordar que el GROUP_NUMBER debe ser el mismo
+
+!Router 1
+interface fastEtherNet0/x
+standby <GROUP_NUMBER> ip <IP_ADDRESS>
+standby <GROUP_NUMBER> priority <PRIORITY_VALUE>
+standby <GROUP_NUMBER> preempt
+
+!Router 2 
+interface fastEtherNet0/x
+standby <GROUP_NUMBER> ip <IP_ADDRESS>
+standby <GROUP_NUMBER> priority <PRIORITY_VALUE>
+
+show standby
+
+
+interface <fastEtherNet0/x | gigabitEthernet 0/x/y>
+    !para todas las interfaces confiables
+    ip dhcp snooping vlan x | ip dhcp snooping
+    ip dhcp snooping trust
+
+
+exit
