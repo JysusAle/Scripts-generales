@@ -82,7 +82,7 @@ interface fastEthernet 0/x
 shutdown
 switchport mode access
 switchport port-security
-switchport port-security maximum 3
+switchport port-security maximum 1
 switchport port-security mac-address sticky
 switchport port-security violation <protect | restrict | shutdown>
 no shutdown
@@ -109,6 +109,12 @@ interface range fastEthernet 0/x - y
 channel-group <GROUP_NUMBER> mode <active | passive | desirable | auto>
 interface port-channel <GROUP_NUMBER>
 switchport mode trunk
+
+
+interface <fastEtherNet0/x | gigabitEthernet 0/x/y>
+    !para todas las interfaces confiables
+    ip dhcp snooping vlan x | ip dhcp snooping
+    ip dhcp snooping trust
 
 ! Verificar configuracion del switch
 do sh ip interface brief
