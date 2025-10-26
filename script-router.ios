@@ -56,15 +56,38 @@ ip route <DESTINATION_NETWORK> <SUBNET_MASK> <NEXT_HOP_IP>
 !Segunda opcion: tiene que estar un router conectado directamente
 ip route <DESTINATION_NETWORK> <SUBNET_MASK> <LOCAL_INTERFACE>
 
-!Ruta Estatica flotante
-ip route <DESTINATION_NETWORK> <SUBNET_MASK> <NEXT_HOP_IP> <METRIC>
+ip route <DESTINATION_NETWORK> <SUBNET_MASK> <NEXT_HOP_IP | LOCAL_INTERFACE> <METRIC>
+
+!Ruta estatica flotante
+!incluir todas la redes del router que sale a internet
+ip route 0.0.0.0 0.0.0.0 <NEXT_HOP_IP | LOCAL_INTERFACE>
+
+router rip
+version 2
+default-information originate 
+
+do show ip route
 
 ! Configurar DHCP
 ip dhcp pool <POOL_NAME>
 network <NETWORK_ADDRESS> <SUBNET_MASK>
+
+!Si hay servidor de gateway
 default-router <DEFAULT_GATEWAY>
-dns-server <DNS_SERVER> 
+
 !si hay servidor dns
+dns-server <DNS_SERVER> 
+
+!otorgar una direccion por dhcp a un router
+ip address dhcp
+
+!Configurar DHCP IP HELPER
+interface fastEtherNet0/x
+
+!Router intermedio
+ip helper-address <IP_ADDRESS_SERVIDOR_DHCP>
+!Recordar crear un pool en el router servidor de dhcp
+
 exit
 do sh ip dhcp binding
 ! Excluir direcciones ip del dhcp
@@ -97,4 +120,22 @@ ip address <IP_ADDRESS> <SUBNET_MASK>
 
 interface gigabitEthernet 0/x/y
 no shutdown
+
+!HSRP
+!Entrar a la interfaz de la misma red
+!Recordar que el GROUP_NUMBER debe ser el mismo
+
+!Router 1
+interface fastEtherNet0/x
+standby <GROUP_NUMBER> ip <IP_ADDRESS>
+standby <GROUP_NUMBER> priority <PRIORITY_VALUE>
+standby <GROUP_NUMBER> preempt
+
+!Router 2 
+interface fastEtherNet0/x
+standby <GROUP_NUMBER> ip <IP_ADDRESS>
+standby <GROUP_NUMBER> priority <PRIORITY_VALUE>
+
+show standby
+
 exit
