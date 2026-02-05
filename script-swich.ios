@@ -116,6 +116,19 @@ interface <fastEtherNet0/x | gigabitEthernet 0/x/y>
     ip dhcp snooping vlan x | ip dhcp snooping
     ip dhcp snooping trust
 
+
+!NTP
+clock set HH:MM:SS DAY MONTH YEAR
+
+!Colocar un servidor ntp
+ntp server <ip server>
+
+!Syslog
+logging host <ip-segmento>
+loggin trap <nivel-msj>
+service timestamp log datatime msec
+ 
+
 ! Verificar configuracion del switch
 do sh ip interface brief
 do sh interface port-channel <GROUP_NUMBER>

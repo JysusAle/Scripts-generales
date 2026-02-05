@@ -97,20 +97,6 @@ channel-group <GROUP_NUMBER> mode <active | passive | desirable | auto>
 interface port-channel <GROUP_NUMBER>
 switchport mode trunk
 
-! Enrutamiento entre VLANs
-! Repetir segun necesidad, por cada interfaz y subinterfaz
-interface gigabitEthernet 0/x/y.z
-encapsulation dot1Q <VLAN_ID>
-ip address <IP_ADDRESS> <SUBNET_MASK>
-
-interface gigabitEthernet 0/x/y.w
-encapsulation dot1Q <VLAN_ID>
-ip address <IP_ADDRESS> <SUBNET_MASK>
-
-interface gigabitEthernet 0/x/y
-no shutdown
-exit
-
 ! Configurar portfast en los puertos de usuario
 interface fastEthernet 0/x
 spanning-tree portfast
@@ -139,5 +125,26 @@ interface <fastEtherNet0/x | gigabitEthernet 0/x/y>
     ip dhcp snooping vlan x | ip dhcp snooping
     ip dhcp snooping trust
 
+! Configurar STP, hacer un switch principal
+do sh spanning-tree
+spanning-tree vlan <VLAN_ID> root primary
+do sh spanning-tree vlan <VLAN_ID>
+end
+! O bien...
+spanning-tree vlan <VLAN_ID> root secondary
+! O bien...
+spanning-tree vlan <VLAN_ID> priority <PRIORITY_VALUE>
+
+!NTP
+clock set HH:MM:SS DAY MONTH YEAR
+
+!Colocar un servidor ntp
+ntp server <ip server>
+
+!Syslog
+logging host <ip-segmento>
+loggin trap <nivel-msj>
+service timestamp log datatime msec
+ 
 
 exit

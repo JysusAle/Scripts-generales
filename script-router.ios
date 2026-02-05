@@ -138,4 +138,30 @@ standby <GROUP_NUMBER> priority <PRIORITY_VALUE>
 
 show standby
 
-exit
+!Listas de control de acceso
+access-list <number> <permit|deny> <ip segmento> <wildcard>
+access-list <number> <permit|deny> host <ip>
+access-list <number> <permit|deny> any
+
+!Aplicar Nateo
+access-list 1 permit host <host permitidos>
+ip nat inside source list 1 interface <interface que va a traducir> overload
+
+int fax/x
+ip nat <inside | outside>
+
+!Enrutamiento por OSPF 
+router ospf 1
+network <ip segmento> <wildcard> area <numero de area>
+
+!NTP
+clock set HH:MM:SS DAY MONTH YEAR
+
+!Colocar un servidor ntp
+ntp server <ip server>
+
+!Syslog
+logging host <ip-segmento>
+loggin trap <nivel-msj>
+service timestamp log datatime msec
+ 
