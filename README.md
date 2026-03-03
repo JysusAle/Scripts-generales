@@ -539,6 +539,35 @@ exit
 ssh -l <usuario_admin> <IP_admin>
 ```
 
+# Preguntas tipo feedback módulo 1
+
+## Lista de preguntas (sin repetidas)
+
+1. ¿Qué es el **DORA** (DHCP)?
+2. ¿A qué **capa del modelo OSI** pertenece *X* cosa? (Ej.: ARP, TCP, switches, etc.)
+3. ¿Cuál es la diferencia entre **WAN** y **LAN**?
+4. ¿Qué es un **hub**?
+5. **Puertos** de los protocolos más comunes (HTTP, HTTPS, SSH, Telnet, DNS, DHCP, etc.).
+6. ¿Cuál es el **objetivo del ARP** y a qué **capa del modelo OSI** pertenece?
+7. ¿Cuántos bits tiene **IPv4**, **IPv6** y la **dirección MAC**?
+8. ¿Qué verás en la **tabla MAC** y en la **tabla de rutas** (routing table)?
+9. ¿Qué hace el comando `show ip dhcp binding`?
+10. Diferencia entre **TCP** y **UDP**.
+11. Si haces un **ping** de una computadora a un **switch** y no funciona, ¿qué revisarías?
+12. ¿Qué es **autenticación**, **autorización**, **disponibilidad** y qué es una arquitectura con buenas prácticas en general?
+13. ¿Para qué es **VLSM**?
+14. ¿Qué es **full dúplex** y **half dúplex**?
+15. IP’s **con clase** y **sin clase**, y ¿por qué?
+16. ¿Para qué se usa **RIP versión 2**?
+17. ¿Para qué se **enruta**?
+18. ¿Cuál es la **X capa** del modelo OSI? (capas y funciones)
+19. ¿Con qué comandos puedes ver la **tabla MAC** y la **tabla de rutas**?
+20. Tipos de **contraseña**.
+21. Tipos de **administración**: remota, por **AUX** o por **consola**.
+22. ¿Qué es **métrica** y **distancia administrativa**?
+23. Diferencia entre **HTTP** y **HTTPS**.
+
+
 ---
 
 ## Módulo 2 – Switching y Routing
