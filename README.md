@@ -628,3 +628,186 @@ ip address <DIRECCIÓN_IP> <MÁSCARA>
 interface gigabitEthernet 0/x/y
 no shutdown
 ```
+
+
+
+
+
+
+
+
+
+
+
+# Notas CCNP
+
+## Access Control List (ACL)
+
+### ACL Estándar
+- Se enumera de **1 a 99**
+- Bloquear o permitir **todos los servicios**
+- Se configura la **IP de origen**
+- Se configuran lo más cerca **al origen**
+
+**Sintaxis:**
+```cisco
+access-list x permit|deny segment wildcard
+access-list x permit|deny host ip
+access-list x permit|deny any
+```
+
+#### Aplicar ACL
+```cisco
+int interface fa x/x | gi x/x
+ip access-group 1
+```
+
+---
+
+## Access Control List (ACL) Extendida
+
+### ACL Extendida
+- Se enumera de **100 a 199**
+- Bloquear o permitir **servicios específicos**
+- Se configura la **IP de origen**
+- Se configuran lo más cerca **al destino**
+
+**Sintaxis:**
+```cisco
+access-list x permit|deny segment wildcard
+access-list x permit|deny host ip
+access-list x permit|deny any
+```
+
+#### Aplicar ACL
+```cisco
+int interface fa x/x | gi x/x
+ip access-group 1
+```
+
+---
+
+## NAT
+- **NAT estático:** uno a uno
+- **NAT dinámico:** pool de traducción
+- **NAT sobreflujo:** PAT, muchos a uno
+
+---
+
+## Práctica 1: PROXY
+- Una máquina virtual: **Kali o Linux**
+- El servidor proxy monitorea el tráfico web al conectarte a internet
+- Tiene **ACL’s**
+- Permite tener controlada la red interna
+
+**Topología:**
+```
+Compu ------ Proxy ------ Internet
+```
+
+### Tipos
+- **Cache:** el cliente configura la IP del proxy para navegar en internet
+- **Transparente:** no se configura una IP; el cliente no sabe que es monitoreado por un proxy
+
+La máquina virtual va a ser el **server** y el cliente la **máquina física**.
+
+- Se entrega en **15 días**
+- Si se hace **transparente**, se suma **+1 punto** sobre feedback
+
+### Para cada práctica (entregable)
+- Documento **PDF**
+- Portada
+- Introducción
+- Desarrollo (capturas de pantalla)
+- Conclusiones
+
+**Interfaz gráfica:** SARG
+
+**Linux → Squid**
+
+---
+
+# 1. OSPF
+- Protocolo de enrutamiento
+- **Distancia Administrativa (AD)** = 110
+- **Métrica** = Costo = (BW referencia / BW interfaz) = (10^8 / BW)
+- **Hello** = 10 seg
+- **Dead** = 40 seg
+
+## Network Type / Prioridades
+- **Point-to-point:** OSPF para redes WAN → prioridad **0**, no hay DR
+- **Broadcast:** OSPF para red LAN → prioridad **1**, contienda
+
+**Comando:**
+```cisco
+Rx# sh ip ospf interface <gi x/x/x | fa x/x>
+```
+
+## Para routers en contienda (elección)
+- Router-id manual
+- IP de loopback
+- IP de la interfaz
+
+**IP Multicast OSPF:** `224.0.0.5`
+
+**Convergencia:** tiempo en que los routers comparten su tabla (Broadcast)
+
+### Tablas / Comandos útiles
+```cisco
+sh ip route
+sh ip ospf neighbor
+sh ip ospf database
+```
+
+## Tipos de LSA
+### 1) Router Link States (Area 0)
+Ejemplo (salida):
+```
+2.2.2.2 2.2.2.2 49 0x80000002 0x00501b 1
+4.4.4.4 4.4.4.4 49 0x80000002 0x00d385 1
+1.1.1.1 1.1.1.1 44 0x80000002 0x008ee5 1
+3.3.3.3 3.3.3.3 44 0x80000002 0x001250 1
+```
+
+## Virtual Links
+<agregar definición>
+
+El **virtual link** solo lo pueden hacer los **routers frontera**.
+Se le hace creer al router del área 1 que está conectada la red directamente.
+
+**Sintaxis (idea):**
+```
+area x virtual-link x.x.x.x
+```
+- `area x`: área puente
+- `x.x.x.x`: router-id del siguiente salto
+
+---
+
+# Enrutamiento EIGRP
+- Paquetes de multidifusión EIGRP:
+  - IPv4: `224.0.0.0`
+  - IPv6: `FF02::A`
+
+## Métrica / Valores K
+- K1 = ancho de banda = 1
+- K2 = carga = 0
+- K3 = demora = 1
+- K4 = confiabilidad = 0
+- K5 = confiabilidad = 0
+
+## Distancia Administrativa
+- 90 = sistemas autónomos internos
+- 170 = sistemas autónomos externos
+
+## Tablas / Comandos EIGRP
+```cisco
+sh ip route
+sh ip eigrp neighbors
+sh ip eigrp topology
+```
+
+## Descubrimiento de vecinos (idea)
+Se hace un saludo de R1 al otro.
+R1 actualiza la info de routing y pregunta si hay alguien más; el otro responde con “gracias” y se intercambia información de routing.
+La convergencia ocurre cuando se actualizan las tablas de routing.
