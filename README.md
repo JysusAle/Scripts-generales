@@ -541,7 +541,7 @@ ssh -l <usuario_admin> <IP_admin>
 
 # Preguntas tipo feedback módulo 1
 
-## Lista de preguntas (sin repetidas)
+## Lista de preguntas
 
 1. ¿Qué es el **DORA** (DHCP)?
 2. ¿A qué **capa del modelo OSI** pertenece *X* cosa? (Ej.: ARP, TCP, switches, etc.)
@@ -840,3 +840,41 @@ sh ip eigrp topology
 Se hace un saludo de R1 al otro.
 R1 actualiza la info de routing y pregunta si hay alguien más; el otro responde con “gracias” y se intercambia información de routing.
 La convergencia ocurre cuando se actualizan las tablas de routing.
+
+# Redistribucion
+- Se traducen metricas
+
+| Enrutamiento | Metrica |
+|------|---------|
+| **RIP** |Salto |
+| **OSPF** | Costo |
+| **EIGRP** | k1,k2,k3,k4,k5 |
+
+## RIPV2 a EIGRP y OSPF
+```cisco
+router rip
+version 2
+redistribute ospf <PROCESS> metric <hops>
+redistribute eigrp <AS> metric <hops>
+```
+
+## OSPF a EIGRP y RIPV2
+```cisco
+router ospf <PROCESS>
+redistribute eigrp <AS> metric <Costo>
+redistribute rip metric <Costo>
+```
+
+## EIGRP a RIPV2 y OSPF
+```cisco
+router eigrp <AS>
+redistribute ospf <PROCESS> metric <k1 k2 k3 k4 k5>
+redistribute rip <k1 k2 k3 k4 k5>
+```
+
+Si quiere traducir de un protocolo a Enrutamiento Estatico Usar: 
+
+```cisco
+redistribute static
+```
+
