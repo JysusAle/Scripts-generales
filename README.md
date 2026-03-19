@@ -878,3 +878,195 @@ Si quiere traducir de un protocolo a Enrutamiento Estatico Usar:
 redistribute static
 ```
 
+#VTP (VLAN TREE PROTOCOL)
+
+Ayuda a mantener todo en orden con las vlans
+
+- Enlaces entre switches troncales
+- Dos versiones (version1, version2 y version3)
+
+- Version 1 y 2 para vlans de rango normal (Por default activada)
+
+- Version 2 mas seguridad (contraseña y dominio)
+
+- Version 3, para vlans de cualquier tip, de rango normal y extendido
+
+La version 1 ya no se llega a ocupar, ya que version 2 puedes crear grupos, pero una deficiencia en la version 2 es que solo acepta rango normal
+
+#### Modo Server
+
+- Modo por defecto
+- Puede crear vlans  
+- Propagar vlans
+- Crear y eliminar vlans
+
+#### Modo transparente 
+- Propaga vlans y las crea 
+- Propaga vlans de server y de cliente
+- No propaga las de el mismo
+
+#### Modo cliente
+
+- No puede crea vlans
+- Puede propagar vlans
+
+```cisco
+interface fastEthernet 0/10
+switchport mode trunk
+switchport trunk allowed vlan <VLAN_IDs>
+! Reemplazar por las vlans necesarias
+exit
+
+vtp version <1,2,3>
+vtp mode <server,transport,client>
+vtp domain <domain> !Para version 2
+vtp password <password>
+```
+- Dominio: Da nombre al grupo de vlans
+- Contraseña: Permite actualizar las vlans y su valor
+- Dominio y contraseña, la misma para todos los switches
+
+```cisco
+show vtp status
+
+vtp version 2
+vtp mode server
+vtp domain ccnp
+vtp password cisco
+
+show vlan brief
+show vtp password
+```
+
+- El Switch transparente siempre va a tener como numero de revision 0, aunque se le creen vlans, por que no almacena vlans de clientes o de servers
+
+- Switch cliente tiene lo mismo que switch server, hablando de numero de vlans y revisiones
+
+- Si se conecta otro switch server, estos van a quedar con las vlans del switch que tenga el mayor numero de revision
+
+- Rangos de vlans: 
+
+## Privilegios de usuario y vistas
+
+- GNS3
+
+Los privilegios de usuario son de Nivel 0 hasta el 15
+
+| Nivel | Descripcion  |
+|------|---------|
+| **0** | No privilegiado (disable, show)|
+| **1** | No Privilegiado (modo exec) |
+|**...**| - |
+|**15**| Superusuario|
+
+- Levantar lineas virtuales y hacer un login local en un router
+
+### Ejercicio: 
+- Que un usuario de nivel 5 pueda hacer un ping
+- De nivel 7, puedan hacer un  sh runn
+- De nivel 7, que pueda conf t
+- nivel 9 entrar a una interfaz
+- nivel 9 hacer un no shutdown
+- nivel 9 ip address
+
+Para resolver el ejercicio: 
+
+```cisco
+!Para crear un superusuario: 
+username <usuario> privilege <#privilegio> secret <password>
+
+username user5 privilege 5 secret cisco5
+
+username user7 privilege 7 secret cisco7
+
+username user9 privilege 9 secret cisco9
+
+!Asignar los comandos que tienen permitidos 
+privilege <modo> level <#nivel> <comando permitido>
+
+!permitir ping
+privilege exec level 5 ping
+
+!permitir sh runn
+privilege exec level 7 show running-config
+!No se pueden abreviar
+
+privilege exec level 7 configure terminal
+!exec es modo global
+
+!Para el nivel 9
+privilege configure level 9 interface fastEtherNet0/0
+
+privilege interface level 9 no shutdown
+
+privilege interface level 9 ip address
+```
+
+- Cada usuario tiene su propia contraseña de enable segun el nivel
+
+```cisco
+
+enable secret level 5 cisco5
+enable secret level 7 cisco7
+enable secret level 9 cisco9
+
+!Para el del superusuario
+enable secret cisco15
+
+```
+
+- Es importante remarcar que los privilegios se heredan entre niveles, es decir, que los niveles mas altos pueden hacer todo lo que hacen los niveles mas bajos. En este caso el nivel 9, puede hacer todo lo que hace el nviel 5 y 7
+
+## Vistas
+
+- La vista es un objeto que tiene los comandos que se pueden acceder, estas no heredan. Si quieres utilizar comandos de otra vista hay que configurar una "SuperVista"
+
+- Se necestira crear una contraseña enable
+
+- Se crean modo vista
+
+- Usa el modelo aaa
+
+Modelo aaa: authentication, authorization, accounting
+
+Para crear vistas
+
+```cisco
+
+conf t
+
+!R1(conf)
+aaa new-model
+aaa authentication login default local
+
+username admin secret admin 
+enable secret cisco
+
+!Una vista que se llame tester view, que haga ping y traceroute
+
+!Una vista que se llame show view y que permita sh runn y sh parser view
+
+!R1#
+enable view
+
+!R1(conf)#
+parser view TESTERVIEW
+secret testerview
+commands exec include ping
+commands exec include traceroute
+exit
+
+parser view SHOWVIEW
+secret showview
+commands exec include show runnig-config
+commands exec include show parser view
+exit
+
+!Supervista
+enable view
+conf t
+parser view SUPERVISTA superview
+secret supervista
+view TESTERVIEW
+view SHOWVIEW
+```
