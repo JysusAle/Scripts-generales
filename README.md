@@ -878,7 +878,7 @@ Si quiere traducir de un protocolo a Enrutamiento Estatico Usar:
 redistribute static
 ```
 
-#VTP (VLAN TREE PROTOCOL)
+# VTP (VLAN TREE PROTOCOL)
 
 Ayuda a mantener todo en orden con las vlans
 
@@ -1069,4 +1069,627 @@ parser view SUPERVISTA superview
 secret supervista
 view TESTERVIEW
 view SHOWVIEW
+```
+
+## Practica N2 - Phishing
+
+- Maquina virtual Kali linux (Atacante)
+- Maquina Fisica (Victima)
+
+- Ciberseguridad es mas profundo que la seguridad informatica, esta ultima 
+es una parte de la ciberseguridad
+
+- Ataque de Ingeneria Social
+
+### Ejecucion
+
+1. Plantilla (Google)
+2. Sitio Web (Github)
+
+- Una vez que se clonen, en la maquina fisica ver que si se den las credeciales. 
+
+- Se debe de pasar a la victima la direccion ip, de donde se clonó
+
+- Se tiene que escribir la direccion ip y tiene que aparecer la pagina, para evitar eso se tiene que hacer un DNS Spoofing.
+
+- La ip de kali a tener un Dominio Ejemplo: www.g00gle.com
+
+- La maquina virtual y la maquina fisica debe de haber un ping. Se debe de estar en modo Puente (Bridge)
+
+- Modificar la tabla ARP, para poner el gateway como la MAC del Atacante, para que cuando quiera salir a internet
+
+- Desarrollo (Capturas de pantalla) y Conclusiones 
+
+### Firewall 
+
+Es un dispositivo que lo que hace es ejecutar reglas para que los dispositivos de la red salgan o no a ciertos sitios 
+
+- Dispositivo Intermediario
+- Reglas Permit o deny, que ejecutaran los dispositivos
+- Hay firewalls de hardware y software
+
+OpenSorce: 
+- Linux (iptables, firewalld)
+- pfsense
+
+Licencia: 
+- Cisco ASA
+- Palo Alto
+- Fortinet (Certificacion)
+
+- Lo que se hacia: 
+
+Compu - Router (PAT) - Internet
+
+- Como se deberia 
+
+Compu - Router - Firewall - Internet (Zona outside)
+
+- Se puede crear una zona desmeteralizada (DMZ)
+
+
+Compu ( Zona inside )- ASA - (outside)Internet 
+
+- De el ASA ir al DMZ: web, DNS, BD
+- Desde internet llega una solicitud y pasa primero por el ASA
+
+Las zonas tienen un nivel de seguridad: 
+
+- Outside: Nivel Seguridad = 0
+- Inside: Nivel Seguridad = 100
+- DMZ: Nivel = Modificable (Recomendado, intermedio por ejemplo: 50)
+
+Para la compu, se debe de tener el numero de tarjetas igual al numero de zonas
+
+El ASA utiliza VLANS por cada Zona
+
+Levantar Inspector de estado para que se pueda paasr de una zona con nivel mayor a una zona con nivel menor : 
+
+```cisco
+!ASA
+class-map CLASE1
+
+!Aplicar inspeccion de servicios
+match default-inspection-traffic
+
+exit
+
+!Mapear la clase y crear politica
+policy-map POLICYMAP
+
+class CLASE1
+
+inspect ?
+
+inspect icmp
+
+service-policy POLICYMAP global
+
+```
+
+Se nececita que un dispositico de nivel menor pase a uno de zona de mayor
+
+- Se crea una access-list
+```cisco
+!ASA
+conf t
+
+!Crear ACL
+access-list 101 permit tcp any any eq 443
+
+!Aplicar ACL
+!access-group 101 in interface <Zona>
+access-group 101 in interface outside
+
+```
+
+- En otra topologia hacer los mismo hasta hacer el inspector y hacer la siguiente confuguracion: 
+
+## Web VPN
+
+La vpn es un protocolo de redes privadas y es virtual (Virtual Private Network)
+
+- Conectar red mediante un tunel cifrado 
+- redes virtuales que viajan por un tunel cifrado para alcanzar otras redes
+- Accesso remoto: Se usan para hacer un home office, se declaran usuarios y contraseñas, son escalables y son rentables, se crea un certificado digital: user VPV (compu) - Internet - Server VPN (Router o server dedicado) - Intranet. Y es como si estuvieras en el trabajo, pero de manera virtual.
+- Punto a punto: Son escalables y rentables, se tienen varias zonas o cedes en una empresa: sede (cdmx -compus, switch-) - Router --Tunel-- Router (Sede GDL -Switches, compus-)
+
+El firewall ASA permite hacer una web VPN, que permite visualizar paginas que estan en la zona inside. De outside al ASA (usuario y contraseña) y te pasa al ASA
+
+```cisco
+
+!ASA(conf)#
+!Zona donde se va a habilitar
+
+webvpn
+
+enable outside
+
+exit
+
+username admin password admin
+
+!Crear politicas de manera interna
+group-policy POLITICA internal
+
+!Con varios atributos
+group-policy POLITICA attributes
+
+!que funciona con una red vpn
+webvpn 
+
+!Nombre sitio, una vez que se acceda debe ir a la pagina
+url-list value SITIO 
+
+exit
+
+!Nombre del tunel acceso y tipo
+tunnel-group ACCESO type remote-access
+
+!Atributos que va terner el tunel
+tunnel-group ACCESO general-attributes
+
+!Uno que va a dejar pasar es la politica
+default-group-policy POLITICA
+
+!Quien se puede conectar 
+username admin attributes 
+
+!Aplicar
+vpn-group-policy POLITICA 
+
+```
+
+En config - Book mark manager y darle nombre SITIO y dieccion https://<ip>, despues "ADD", en users sale el usuario, darle set y probar en el web browser ingresando la ip del ASA
+
+En otro topologia, para crear un DMZ:
+
+```cisco
+
+!ASA(conf)#
+
+interface vlan 3
+
+!Solo en packet tracer 
+no forward interface vlan 1
+
+nameif DMZ
+
+security-level 50
+
+exit
+
+interface Ethernet 0/2
+
+switchport access vlan 3
+
+exit
+
+interface vlan 3
+
+ip address 192.168.3.1 255.255.255.0
+
+!Levantar Inspector de estados con icmp, http, dns
+
+!Crear nateo con una virtual
+!En este caso 192.168.2.200
+
+!Tenemos: 192.168.2.200 = 192.168.3.10
+!Colocar ip del nateo virtual para llegar
+!Crear una ACL por pasar de nivel menor a mayor
+
+!Primer paso: crear ACL 
+
+!ASA(conft)#
+access-list ACL1 extended permit tcp any any
+access-list ACL1 extended permit udp any any
+access-group ACL1 in interface outside
+!access-group ACL1 in interface <zona> 
+
+object network OBJ1
+host 192.168.3.10
+nat (DMZ,outside) static 192.168.2.200
+
+!nat (<zona destino>,<zona origen>) <tipo de nat> <ip que va a traducir>
+
+```
+
+## PBR
+
+- Policy Based Routing
+
+- En un lugar de mandar un ping de R1 a la loopback 4.4.4.4, especificamente se va por la LAN
+
+- El equilibrio de carga hace que se eliga esto, pero esto no es asi, ssi en R2 un tracer a 4.4.4.4, tambien se va por la red lan, esto se debe por el ancho de banda. Se toma con el que tenga el mayor ancho de banda 
+
+- Para modificar el camnino sin modificar el ancho de banda se puede usar el PBR
+
+- Se pueden aplicar politicas para que el trafico se vaya en una interfaz especifica
+
+- Un ping por ejemplo por la red wan (menor BW) y los servers por la red lan (mayor BW)
+
+```cisco
+!Con todo enrutado
+!Checar la tabla de enrutamiento
+!Hacer un ping entre loopbacks
+
+!Para ver el ancho de banda
+!sh interface <fa | se> <num>  !y ver BW
+
+!El PBR se coloca en el router que elije el camnino por el que se va a ir el trafico 
+
+!En este caso R3
+!R3(config)#
+
+access-list ?
+
+access-list 105 permit ip host 192.168.13.1 host 4.4.4.4
+
+!Aplicar politicas 
+route-map DESTRAFF permit 10
+!Llamar acl, para que varios segmentos se vayan por el segmento de red
+
+ match ip address 105
+ set ip next-hop 192.168.35.2
+
+!interface [nombre_de_la_interfaz]
+interface fa0/0
+ ip policy route-map DESTRAFF
+
+wr
+
+```
+
+# Servidor Radius y Tacacst
+
+Usan el protocolo aaa
+
+authorization 
+Authentication 
+Accouting
+
+
+## Radius (Remote Authentication Dial in User Service)
+- Es udp pto 1812
+- Cifra la contraseña Radius
+
+Compu - Router - Radius
+              
+         Request ->
+conection ->
+         accept <-
+
+El usuario no tiene comunicacion directa con el server
+
+## Tacacs (Terminal Access control - Sytem plus)
+- Es tcp ussa pto 49
+- Es de cisco
+- Cifra toda la informacion
+
+Compu - Router - Radius
+              
+         Request ->
+conection ->
+    Response<-Response <-
+
+connect -> connect ->
+
+El servidor radius
+
+```cisco
+!Colocar en el ruter intermedio la siguiente configuracion
+!Rx(conf)#
+
+aaa new-model
+aaa authentication login default local
+aaa authentication login default group tacacs+
+aaa authentication login default group radius
+
+radius-server host<ip>
+radius-server key <key>
+
+tacacs-server host <ip>
+tacacs-server key <key>
+
+!Para R1, se desea que se acceda por Radius y Local
+aaa new-model
+aaa authentication login default group radius local
+radius-server host 192.168.1.1
+radius-server key ccnp
+
+!Para R2, se desea que se acceda por Tacacs+, Radius y Local
+aaa new-model
+aaa authentication login default group tacacs group radius local
+radius-server host 192.168.1.1
+radius-server key ccnp
+tacacs-server host 192.168.2.100
+tacacs-server key ccnp
+
+```
+
+# Respaldo de S.O
+
+(1.254) R - (1.10)TFTP
+
+En el router, en cada registro puedes guardar una configuracion diferente 
+
+El FTP, hace transferencia de archivos
+
+- Checar en que registro trabaja el router
+
+```cisco
+! Router#
+
+sh version
+
+!System image file is "flash:c1841-advipservicesk9-mz.124-15.T1.bin"
+
+dir flash
+
+!flash:c1841-advipservicesk9-mz.124-15.T1.bin
+
+!Ir al TFTP y borrar todoss los archivos 
+
+!En el router:
+!R1#
+
+#Copiar archivo
+copy flash: tftp: !
+c1841-advipservicesk9-mz.124-15.T1.bin
+192.168.1.10
+!Enter
+
+!Para borrar S.O
+delete flash
+
+!Reset con: reload en Rx#
+reload
+! rommon 1 > 
+
+!Para recuperar S.O
+!Recordar conectar en la primera interfaz
+! rommon 1 > 
+
+IP_ADDRESS=192.168.1.1
+IP_SUBNET_MASK=255.255.255.0
+DEFAULT_GATEWAY=192.168.1.254
+TFTP_SERVER=192.168.1.10
+TFTP_FILE=c1841-advipservicesk9-mz.124-15.T1.bin
+tftpdnld
+
+! rommon 1 > 
+reset
+```
+# Cisco Password Recovery
+
+```cisco
+!Configuracion Inicial
+#Rx(conf)
+hostname R1
+enable password ccnp123
+username jesu password cisco123
+line console 0
+login local
+end
+
+!Rx#
+wr
+
+!Cabiar de registro, normalmente es el 0x2102
+!A uno generico 0x2142
+
+!Cambiar a romon, apagar y cuando lo este haciendo Ctrl + C
+
+! rommon 1 > 
+confreg 0x2142
+reset
+
+!Rx#
+sh version
+!Notar que ya estamos en otro registro (Hasta abajo)
+
+copy startup-config running-config
+
+!Para ver la contraseña
+sh runn 
+!Modificar lo necesario o ver la contraseña
+!Si es MD5 borrarla xd
+
+!Rx(conf)#
+
+config-register 0x2102
+
+exit
+
+wr
+
+reload
+```
+
+Descargar: 
+- HyperTerminal
+- teraterm
+
+# Encapsulamiento de Redes WAN
+
+Dos tipos: 
+
+- HDLC: Por el que empieza cisco
+- PPP: protocol point to point 
+
+- PPP Multilink: Aumenta la velocidad de ancho de banda en seriales (WAN)
+
+El PPP tiene metodos de autenticacion:
+- PPP PAP
+- PPP CHAP
+
+Para que se pueda pasar por un serial, tiene que pasar por autenticacion 
+
+```cisco
+
+!Autenticacion PPP (PAP)
+
+!R1(Conf)#
+hostname R1
+username R2 pass cisco123
+int se 0/0/0
+encapsulation ppp
+ip address 
+ppp authentication pap
+ppp pap sent-username R1 pass antonio123
+no shutdown
+
+!R2(Conf)#
+hostname R2
+username R1 pass antonio123
+int se 0/0/0
+encapsulation ppp
+ip address 
+ppp authentication pap
+ppp pap sent-username R2 pass cisco123
+no shutdown
+
+```
+
+Si se conocen por su usuario y contraseña ambos routers se levanta la auntenticacion, no se hace cifrado
+
+```cisco
+
+!Autenticacion PPP (PAP)
+
+!R1(Conf)#
+hostname R1
+username R2 pass cisco
+int se 0/0/0
+encapsulation ppp
+ip address 192.168.1.1 255.255.255.0
+ppp authentication chap
+no shutdown
+
+!R2(Conf)#
+hostname R2
+username R1 pass cisco
+int se 0/0/0
+encapsulation ppp
+ip address 192.168.1.2 255.255.255.0
+ppp authentication chap
+no shutdown
+
+```
+
+La contraseña debe entre usuarios debe de ser la misma, dado que trabaja con una transformada HASH para cifrar
+
+Hostname Recomendado
+
+```cisco
+!ver encapsulacion 
+sh interface se 0/0/0
+
+```
+
+# VPN'S
+
+- Bajo Costo 
+- Escalable
+- Ofrece Seguridad al usuario
+
+Point to Point: 
+- Conecta sedes en diferentes estados o paises 
+- No ocupa ni usuario ni contraseña
+- Conectan dispositivos de red
+
+Acceso remoto: 
+- Conecta al usuario a una intranet
+- Ocupa un usuario y una contraseña
+- Se le conoce como Home Office
+
+Hay vpn's que son opensource
+
+- Cuando se conecta por una VPN se crea una interfaz virtual, ip tunelling. Dos redes la de la tarjeta de red y la de la VPN
+
+
+
+## Cosas que preguntar en una entrevista
+presetaciones
+horario 
+sueldo (cada cuando)
+
+asalarario y horonario 
+
+## Preguntas tipo Feedback
+Tipos de proxy
+nivel de configuracion 
+para que es el pbr, reparticion de carga de  bw
+diferencia de usuarios y vistas
+que es redistribucion
+registro de config por default, 2102
+que es un inspector de estados en un ASA, de uno mayor a uno menor (nivel)
+MD5, autenticacion en ospf
+
+
+# BGP (Border Gateway Protocol)
+
+- Protocolo de enrutamiento dinamico
+
+IGP - {RIP, EIGRP, OSPF}
+
+EGP - {BGP}
+
+- Configurar sistemas autonomos
+- Adyacencias
+
+```cisco
+
+!Rx(Conf)#
+
+!router bgp x
+! neighbor <ip vecino> remote-as <# sistema autonomo>
+
+!Para BGP = 100
+!R1
+router bgp 100
+neighbor 192.168.1.2 remote-as 100
+neighbor 192.168.2.2 remote-as 100
+
+!R2
+router bgp 100
+neighbor 192.168.1.1 remote-as 100
+neighbor 192.168.2.2 remote-as 100
+
+!R3
+router bgp 100
+neighbor 192.168.1.1 remote-as 100
+neighbor 192.168.2.1 remote-as 100
+
+!Todos los routers estan en la misma bgp 100, entonces cada uno debe de hacer una adycencia con el otro 
+!Ahora el R3, tiene que hacer tambien adyacencia con el frontera del otro BGP
+
+!R3
+neighbor 192.168.3.2 remote-as 200
+
+!Para BGP = 200
+!R4(Conectado a otro AS - BGP)
+router bgp 200
+neighbor 192.168.4.2 remote-as 200
+neighbor 192.168.3.1 remote-as 100
+
+!R5
+router bgp 100
+neighbor 192.168.4.1 remote-as 200
+
+!En R3, se debe de poner los segmentos de red
+router bgp 100
+network 192.168.3.0 mask 255.255.255.0
+network 3.3.3.3 mask 255.255.255.255
+network 192.168.2.0 mask 255.255.255.0
+network 2.2.2.2 mask 255.255.255.255
+network 1.1.1.1 mask 255.255.255.255
+network 192.168.1.0 mask 255.255.255.0
+
+!En R4
+router bgp 200
+network 192.168.4.0 mask 255.255.255.0
+network 4.4.4.4 mask 255.255.255.255
+network 192.168.5.0 mask 255.255.255.0
+network 5.5.5.5 mask 255.255.255.255
 ```
